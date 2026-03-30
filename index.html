@@ -27,10 +27,11 @@
 </div>
 
 <script>
+// Load the CSV
 fetch("videos.csv")
     .then(res => res.text())
     .then(csv => {
-        const lines = csv.trim().split("\n").slice(1);
+        const lines = csv.trim().split("\n").slice(1); 
         const container = document.getElementById("videoContainer");
 
         lines.forEach(line => {
@@ -38,26 +39,28 @@ fetch("videos.csv")
             const cleanTitle = title.replace(/"/g, "");
             const cleanUrl = url.replace(/"/g, "");
 
+            // Extract YouTube video ID
             const match = cleanUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
             if (!match) return;
             const videoId = match[1];
 
-            // FIXED: Using YouTube NO-COOKIE embed to bypass 403
-            const embed = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
+            // Use no-cookie embed to avoid 403
+            const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
 
-            const card = `
+            // Add card
+            container.innerHTML += `
                 <div class="col-md-4 mb-4">
                     <div class="card video-card p-2">
-                        <iframe src="${embed}" allowfullscreen></iframe>
+                        <iframe src="${embedUrl}" allowfullscreen></iframe>
                         <div class="p-2">
                             <h6 class="fw-bold">${cleanTitle}</h6>
                         </div>
                     </div>
                 </div>
             `;
-            container.innerHTML += card;
         });
-    });
+    })
+    .catch(err => console.error("CSV Load Error:", err));
 </script>
 
 </body>
