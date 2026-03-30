@@ -1,53 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyTube - Video Player</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body { background: #f4f6f9; }
-        iframe { width: 100%; height: 240px; border-radius: 10px; }
-        .video-card { transition: 0.3s; border-radius: 12px; }
-        .video-card:hover { transform: translateY(-4px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-    </style>
-</head>
-
-<body>
-
-<nav class="navbar navbar-dark bg-dark px-3">
-    <span class="navbar-brand mb-0 h1">StudyTube</span>
-</nav>
-
-<div class="container mt-4">
-    <h2 class="fw-bold text-center mb-4">All Videos</h2>
-    <div class="row" id="videoContainer"></div>
-</div>
-
 <script>
 // Load the CSV
 fetch("videos.csv")
     .then(res => res.text())
     .then(csv => {
-        const lines = csv.trim().split("\n").slice(1); 
+        const lines = csv.trim().split("\n").slice(1);
         const container = document.getElementById("videoContainer");
 
         lines.forEach(line => {
-            const [title, url] = line.split(/,(.+)/);
-            const cleanTitle = title.replace(/"/g, "");
-            const cleanUrl = url.replace(/"/g, "");
+            // Safe CSV parse for "title","url"
+            const parts = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+            if (!parts || parts.length < 2) return;
 
-            // Extract YouTube video ID
+            const cleanTitle = parts[0].replace(/(^"|"$)/g, "");
+            const cleanUrl = parts[1].replace(/(^"|"$)/g, "");
+
+            // Extract YouTube ID
             const match = cleanUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
             if (!match) return;
-            const videoId = match[1];
 
-            // Use no-cookie embed to avoid 403
+            const videoId = match[1];
             const embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}`;
 
-            // Add card
             container.innerHTML += `
                 <div class="col-md-4 mb-4">
                     <div class="card video-card p-2">
@@ -62,6 +35,3 @@ fetch("videos.csv")
     })
     .catch(err => console.error("CSV Load Error:", err));
 </script>
-
-</body>
-</html>
